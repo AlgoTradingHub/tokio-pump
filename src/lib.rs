@@ -86,16 +86,38 @@ impl<T> Stream for Receiver<T> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::thread;
     use futures::Future;
     use futures::stream::Stream;
 
     #[test]
-    fn test_stream() {
+    fn single_thread() {
         let (tx, rx) = pump(3);
         assert!(tx.send(1).is_ok());
         assert!(tx.send(2).is_ok());
         assert!(tx.send(3).is_ok());
         let f = rx.take(3).collect();
         assert_eq!([1, 2, 3], f.wait().unwrap().as_slice());
+    }
+
+    #[test]
+    fn multi_thread_pop() {
+        let (tx, rx) = pump(1);
+        let t = thread::spawn(move || {
+            assert!(tx.send(1).is_ok());
+        });
+        assert_eq!(1, rx.inner.pop());
+        t.join().unwrap();
+    }
+
+    #[test]
+    fn multi_thread_stream() {
+        let (tx, rx) = pump(1);
+        let t = thread::spawn(move || {
+            assert!(tx.send(1).is_ok());
+        });
+        let res = rx.take(1).collect().wait();
+        assert_eq!([1], res.unwrap().as_slice());
+        t.join().unwrap();
     }
 }
