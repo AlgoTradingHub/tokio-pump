@@ -1,0 +1,11 @@
+[package]
+name = "tokio-pump"
+version = "0.1.0"
+authors = ["Joel Reymont <joelr1@gmail.com>"]
+
+[dependencies]
+futures = "0.1.2"
+#bounded-spsc-queue = "0.0.1"
+bounded-spsc-queue = { git = "https://github.com/AlgoTradingHub/bounded-spsc-queue.git" }
+mio = "0.6"
+
