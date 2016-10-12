@@ -82,3 +82,20 @@ impl<T> Stream for Receiver<T> {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use futures::Future;
+    use futures::stream::Stream;
+
+    #[test]
+    fn test_stream() {
+        let (tx, rx) = pump(3);
+        assert!(tx.send(1).is_ok());
+        assert!(tx.send(2).is_ok());
+        assert!(tx.send(3).is_ok());
+        let f = rx.take(3).collect();
+        assert_eq!([1, 2, 3], f.wait().unwrap().as_slice());
+    }
+}
