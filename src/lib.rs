@@ -87,7 +87,7 @@ impl<T> Stream for Receiver<T> {
 mod tests {
     use super::*;
     use std::thread;
-    use futures::Future;
+    use futures::{Future, Async};
     use futures::stream::Stream;
 
     #[test]
@@ -116,8 +116,13 @@ mod tests {
         let t = thread::spawn(move || {
             assert!(tx.send(1).is_ok());
         });
-        let res = rx.take(1).collect().wait();
-        assert_eq!([1], res.unwrap().as_slice());
+        let mut f = rx.take(1).collect();
+        loop {
+            if let Ok(Async::Ready(x)) = f.poll() {
+                assert_eq!([1], x.as_slice());
+                break;
+            }
+        }
         t.join().unwrap();
     }
 }
